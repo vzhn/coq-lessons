@@ -21,13 +21,23 @@ Fixpoint substitution (t: LambdaTerm) (n: nat) (replacement: LambdaTerm): Lambda
   end.
 
 
-Definition has_redex (t: LambdaTerm): bool :=
+Fixpoint has_redex (t: LambdaTerm): bool :=
+  match t with
+    | variable v => false
+    | app a b => (match a with
+                   | abst _ _ => true
+                   | _ => has_redex a
+                 end) || (has_redex b)
+    | abst v b => has_redex b
   end.
 
 Fixpoint beta (t: LambdaTerm): LambdaTerm :=
   match t with
     | variable v => t
-    | app a b => t
+    | app a b => match a with 
+                   | abst n body => substitution body n b
+                   | _ => app a (beta b)
+                 end
     | abst v b => abst v (beta b)
   end.
 
