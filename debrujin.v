@@ -5,14 +5,6 @@ Inductive LambdaTerm :=
 | app (a b: LambdaTerm)
 | abst (a: LambdaTerm).
 
-Definition n0 := (var 0).
-Definition n1 := (var 1).
-Definition n2 := (var 2).
-Definition n3 := (var 3).
-Definition n4 := (var 4).
-Definition n5 := (var 5).
-Definition n6 := (var 6).
-
 Fixpoint lambda_eq (a b: LambdaTerm): bool :=
 match a, b with
 | var v1, var v2 => v1 =? v2
@@ -57,19 +49,6 @@ match a with
 | abst body => abst (replace_instances body b (S depth))
 end.
 
-(*
-  From Wiki:
-  beta-reduction (\u03bb M) N 
-  1. find bound instances in M
-  2. decrement free variables of M
-  3. replace bound instances of M with N, incrementing free variables of N
-
-  example
-   ((abst (abst (app (app (var 3) (var 1)) (abst (app (var 0) (var 2)))))) (abst (app (var 4) (var 0)))) -> 
-
-   (abst (app (app (var 2) (abst (app (var 5) (var 0)))) (abst (app (var 0) (abst (app (var 6) (var 0)))))))
-*)
-
 Fixpoint beta (t: LambdaTerm): LambdaTerm :=
 match t with
 | (app (abst a) b) => (dec_free_vars (replace_instances a b 0) 0)
@@ -80,10 +59,17 @@ match t with
 | _ => t
 end.
 
-Example beta_example_007: 
- beta (app (abst n3) n6) = n2.
-Proof. simpl. reflexivity. Qed.
+Fixpoint _beta_fuel (t: LambdaTerm) (fuel: nat): LambdaTerm :=
+  match fuel with
+  | 0 => t
+  | S n => let bt := beta t in
+             if (lambda_eq t bt)
+               then t
+               else _beta_fuel bt n
+  end.
 
+Definition beta_fuel (t: LambdaTerm): LambdaTerm :=
+  _beta_fuel t 100.
 
 Theorem inv_fv_simple_v1:
  forall (t: LambdaTerm) (depth: nat),
@@ -93,6 +79,18 @@ Proof.
   - simpl. reflexivity.
   - simpl. reflexivity.
 Qed.
+
+Definition n0 := (var 0).
+Definition n1 := (var 1).
+Definition n2 := (var 2).
+Definition n3 := (var 3).
+Definition n4 := (var 4).
+Definition n5 := (var 5).
+Definition n6 := (var 6).
+
+Example beta_example_007: 
+ beta (app (abst n3) n6) = n2.
+Proof. simpl. reflexivity. Qed.
 
 Example inc_000: inc_free_vars (var 0) 0 1 = var 1.
 Proof. simpl. reflexivity. Qed.
@@ -132,18 +130,14 @@ Example beta_example_006:
       (abst (app (var 0) (var 1))).
 Proof. simpl. reflexivity. Qed.
 
-
 Example beta_example_002:
  beta (app (abst (abst (abst (abst (var 3))))) (abst (app (var 0) (var 1)))) =
  (abst (abst (abst (abst (app (var 0) (var 4)))))).
 Proof. simpl. reflexivity. Qed.
 
-
 Example beta_example_005: 
  beta (app (abst (abst n3)) n6) = abst n2.
 Proof. simpl. reflexivity. Qed.
-
-
 
 Example beta_example_004: 
  beta (app (abst (abst (app n3 n1))) n3) = 
