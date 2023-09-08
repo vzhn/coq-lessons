@@ -212,6 +212,46 @@ Qed.
 
 Theorem plus_n_Sm: forall n m: nat,
  S (n + m) = n + (S m).
+Proof.
+ intros n m.
+ induction n as [|n' IHn'].
+ - simpl. reflexivity.
+ - simpl. rewrite <- IHn'. reflexivity.
+Qed.
 
+Theorem add_comm: forall n m : nat,
+ n + m = m + n.
+Proof.
+ induction n as [| n' IHn'].
+ - simpl. intros. rewrite -> add_0_r. reflexivity.
+ - simpl. intros. rewrite -> IHn'. rewrite -> plus_n_Sm. reflexivity.
+Qed.
+
+Theorem add_assoc : forall n m p : nat,
+ n + (m + p) = (n + m) + p.
+Proof.
+ induction m as [| m' IHm'].
+ - simpl. rewrite -> add_0_r. reflexivity.
+ - simpl. intros p. 
+   rewrite <- plus_n_Sm. 
+   rewrite <- plus_n_Sm. 
+   rewrite IHm'.
+   rewrite -> add_comm.
+   rewrite -> plus_n_Sm.
+   rewrite -> add_comm.
+   reflexivity.
+Qed.
+
+Fixpoint double (n: nat) :=
+match n with
+| 0 => 0
+| S n' => S (S (double n'))
+end.
+
+Lemma double_plus: forall n, double n = n + n.
+Proof.
+
+Qed.
+ 
 
 
