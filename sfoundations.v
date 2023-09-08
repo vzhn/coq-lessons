@@ -250,8 +250,32 @@ end.
 
 Lemma double_plus: forall n, double n = n + n.
 Proof.
-
+ induction n as [|n' IHn'].
+ - simpl. reflexivity.
+ - simpl. rewrite IHn'. rewrite plus_n_Sm. reflexivity.
 Qed.
- 
 
+Theorem eqb_refl: forall n: nat, (n =? n) = true.
+Proof.
+induction n as [| n' IHn'].
+- simpl. reflexivity.
+- simpl. rewrite IHn'. reflexivity.
+Qed. 
 
+Theorem double_neg_b: forall (b: bool), negb (negb b) = b.
+Proof.
+ destruct b.
+ - reflexivity.
+ - reflexivity.
+Qed.
+
+Theorem even_S : forall n : nat,
+  even (S n) = negb (even n).
+Proof.
+ induction n as [| n'].
+ - reflexivity.
+ - rewrite IHn'.
+   simpl. destruct (even n').
+   + reflexivity.
+   + reflexivity.
+Qed.
