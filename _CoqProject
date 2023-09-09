@@ -1,3 +1,9 @@
 -R . MyProofs
 LambdaDebrujin.v
-debrujin.v
+Combinators.v
+Church.v
+ChurchTests.v
+Beta.v
+BetaTests.v
+
+

@@ -19,7 +19,7 @@ Fixpoint _app_to_nat (t: LambdaTerm): (option nat) :=
     | _ => None
   end.
 
-Definition succ := 
+Definition church_succ := 
   (abst (abst (abst (app (var 1) (app (app (var 2) (var 1)) (var 0)))))).
 
 Definition church_to_nat (ch: LambdaTerm): (option nat) :=
@@ -27,3 +27,6 @@ Definition church_to_nat (ch: LambdaTerm): (option nat) :=
     | (abst (abst a)) => _app_to_nat a
     | _ => None
   end.
+
+Definition church_true := (abst (abst (var 1))).
+Definition church_false := (abst (abst (var 0))).
