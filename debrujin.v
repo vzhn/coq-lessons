@@ -1,9 +1,5 @@
 Require Import Coq.Init.Nat.
-
-Inductive LambdaTerm :=
-| var (v: nat)
-| app (a b: LambdaTerm)
-| abst (a: LambdaTerm).
+Require Import LambdaDebrujin.
 
 Fixpoint lambda_eq (a b: LambdaTerm): bool :=
 match a, b with
@@ -13,9 +9,38 @@ match a, b with
 | _, _ => false
 end.
 
+Fixpoint _mk_app (n: nat) :=
+ match n with
+  | O => var 0
+  | S n => app (var 1) (_mk_app n)
+ end.
+
+Definition nat_to_church (n: nat): LambdaTerm :=
+  abst (abst (_mk_app n)).
+
+Fixpoint _app_to_nat (t: LambdaTerm): (option nat) :=
+  match t with
+    | var 0 => Some 0
+    | app (var 1) a => match (_app_to_nat a) with
+                       | Some k => Some (S k)
+                       | _ => None
+                       end
+    | _ => None
+  end.
+
+Definition church_to_nat (ch: LambdaTerm): (option nat) :=
+  match ch with
+    | (abst (abst a)) => _app_to_nat a
+    | _ => None
+  end.
+
+
 Definition s_comb := (abst (abst (abst (app (app (var 2) (var 0)) (app (var 1) (var 0)))))).
 
 Definition k_comb := (abst (abst (var 1))).
+
+Definition succ := 
+  (abst (abst (abst (app (var 1) (app (app (var 2) (var 1)) (var 0)))))).
 
 Fixpoint dec_free_vars (t: LambdaTerm) (depth: nat): LambdaTerm :=
 match t with  
@@ -56,6 +81,7 @@ match t with
                if (lambda_eq a ba)
                 then app a (beta b)
                 else app ba b
+| abst body => abst (beta body)
 | _ => t
 end.
 
@@ -161,6 +187,9 @@ Example beta_example_003:
            (abst (app n4 n0))) = 
  abst (app (app n2 (abst (app n5 n0))) 
            (abst (app n0 (abst (app n6 n0))))).
+Proof. simpl. reflexivity. Qed.
+
+Example succ_zero: (beta_fuel (app succ (nat_to_church 0))) = (nat_to_church 1).
 Proof. simpl. reflexivity. Qed.
 
 
