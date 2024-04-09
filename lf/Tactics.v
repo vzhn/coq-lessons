@@ -1312,7 +1312,7 @@ Definition split_combine_statement : Prop :=
 Theorem split_combine : split_combine_statement.
 Proof.
 intros.
-Qed.
+Admitted.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_split_combine : option (nat*string) := None.
