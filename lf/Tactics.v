@@ -1311,8 +1311,23 @@ Definition split_combine_statement : Prop :=
 
 Theorem split_combine : split_combine_statement.
 Proof.
-intros.
-Admitted.
+ unfold split_combine_statement.
+ intros X.
+ intros a.
+ induction a.
+ - intros. simpl. destruct b.
+   + reflexivity.
+   + discriminate.
+ - intros.
+   inversion H.
+   + destruct b.
+     * simpl. discriminate.
+     * inversion H1.
+       apply IHa in H2.
+       simpl.
+       rewrite H2.
+       reflexivity.
+ Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_split_combine : option (nat*string) := None.
@@ -1324,7 +1339,9 @@ Theorem filter_exercise : forall (X : Type) (test : X -> bool)
   filter test l = x :: lf ->
   test x = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ 
+Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced, especially useful (forall_exists_challenge)
