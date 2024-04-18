@@ -1418,7 +1418,7 @@ Example test_existsb_4 : existsb even [] = false.
 Proof. reflexivity. Qed.
 
 Definition existsb' {X : Type} (test : X -> bool) (l : list X) : bool :=
- negb (forallb test l).
+ negb (forallb (fun x => (negb (test x))) l).
 
 Theorem existsb_existsb' : forall (X : Type) (test : X -> bool) (l : list X),
   existsb test l = existsb' test l.
@@ -1426,7 +1426,19 @@ Proof.
  intros.
  induction l.
  - simpl. reflexivity.
- -
+ - simpl. 
+   rewrite  IHl.
+   unfold existsb'.
+   simpl.
+   destruct (forallb test l) eqn:E1.
+   + simpl.
+     destruct (test x) eqn:E2.
+     reflexivity.
+     reflexivity.
+   + simpl.
+     destruct (test x) eqn:E2.
+     reflexivity.
+     reflexivity.
 Qed.
 
 (** [] *)
