@@ -1311,8 +1311,23 @@ Definition split_combine_statement : Prop :=
 
 Theorem split_combine : split_combine_statement.
 Proof.
-intros.
-Admitted.
+ unfold split_combine_statement.
+ intros X.
+ intros a.
+ induction a.
+ - intros. simpl. destruct b.
+   + reflexivity.
+   + discriminate.
+ - intros.
+   inversion H.
+   + destruct b.
+     * simpl. discriminate.
+     * inversion H1.
+       apply IHa in H2.
+       simpl.
+       rewrite H2.
+       reflexivity.
+ Qed.
 
 (* Do not modify the following line: *)
 Definition manual_grade_for_split_combine : option (nat*string) := None.
@@ -1321,10 +1336,23 @@ Definition manual_grade_for_split_combine : option (nat*string) := None.
 (** **** Exercise: 3 stars, advanced (filter_exercise) *)
 Theorem filter_exercise : forall (X : Type) (test : X -> bool)
                                  (x : X) (l lf : list X),
-  filter test l = x :: lf ->
-  test x = true.
+  filter test l = x :: lf -> test x = true.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ generalize dependent lf.
+ induction l.
+ + intros.
+   discriminate H.
+ + intros.
+   simpl in H.
+   destruct (test x0) eqn:E.
+   - inversion H.
+     rewrite <- H1.
+     apply E.
+   - specialize IHl with (lf := lf).
+     apply IHl.
+     apply H.
+Qed.
 (** [] *)
 
 (** **** Exercise: 4 stars, advanced, especially useful (forall_exists_challenge)
@@ -1353,10 +1381,10 @@ Proof.
     [existsb'] and [existsb] have the same behavior.
 *)
 
-Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool := 
+Fixpoint forallb {X : Type} (test : X -> bool) (l : list X) : bool :=
 match l with
-| nil => true
-| lh :: lt => test lh && forallb test lt
+| lh::lt => test lh && forallb test lt
+| _ => true
 end.
 
 Example test_forallb_1 : forallb odd [1;3;5;7;9] = true.
@@ -1373,8 +1401,8 @@ Proof. reflexivity. Qed.
 
 Fixpoint existsb {X : Type} (test : X -> bool) (l : list X) : bool :=
 match l with
-| nil => false
-| lh :: lt => test lh || existsb test lt
+| lh::lt => test lh || existsb test lt
+| _ => false
 end.
 
 Example test_existsb_1 : existsb (eqb 5) [0;2;3;6] = false.
@@ -1390,28 +1418,26 @@ Example test_existsb_4 : existsb even [] = false.
 Proof. reflexivity. Qed.
 
 Definition existsb' {X : Type} (test : X -> bool) (l : list X) : bool :=
-negb (forallb (fun x => negb (test x)) l).
-
-Search (_ || _).
+ negb (forallb (fun x => (negb (test x))) l).
 
 Theorem existsb_existsb' : forall (X : Type) (test : X -> bool) (l : list X),
   existsb test l = existsb' test l.
-Proof.
+Proof. 
  intros.
- induction l as [| l1'h l1't IHl1'].
- - reflexivity.
- - simpl.
-   destruct (test l1'h) eqn:E.
-   simpl.
+ induction l.
+ - simpl. reflexivity.
+ - simpl. 
+   rewrite  IHl.
    unfold existsb'.
-   unfold forallb.
-   rewrite E.
-   simpl. reflexivity.
-   rewrite IHl1'.
    simpl.
-   unfold existsb'.
-   simpl. rewrite E.
-   reflexivity.
+   destruct (forallb test l) eqn:E1.
+   + simpl.
+     destruct (test x) eqn:E2.
+     reflexivity.
+     reflexivity.
+   + simpl.
+     destruct (test x) eqn:E2.
+     reflexivity.
 Qed.
 
 (** [] *)
