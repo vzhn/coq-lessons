@@ -188,7 +188,9 @@ Proof. reflexivity. Qed.
 Lemma t_apply_empty : forall (A : Type) (x : string) (v : A),
   (_ !-> v) x = v.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros A x v.
+ unfold t_empty. reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_eq)
@@ -197,10 +199,17 @@ Proof.
     and then look up [x] in the map resulting from the [update], we
     get back [v]: *)
 
+Locate Nat.eqb_refl.
+
+Search ( _ =? _).
+
 Lemma t_update_eq : forall (A : Type) (m : total_map A) x v,
   (x !-> v ; m) x = v.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ unfold t_update. 
+ rewrite  String.eqb_refl. reflexivity.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_neq)
@@ -209,11 +218,22 @@ Proof.
     look up a _different_ key [x2] in the resulting map, we get the
     same result that [m] would have given: *)
 
+Locate "<>".
+
+Search (_ -> False).
+
 Theorem t_update_neq : forall (A : Type) (m : total_map A) x1 x2 v,
   x1 <> x2 ->
   (x1 !-> v ; m) x2 = m x2.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ unfold t_update.
+ rewrite <- String.eqb_eq in H.
+ unfold not in H.
+ destruct ((x1 =? x2)%string).
+ - destruct H. reflexivity. 
+ - reflexivity. 
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (t_update_shadow)
@@ -224,10 +244,19 @@ Proof.
     to any key) as the simpler map obtained by performing just
     the second [update] on [m]: *)
 
+Print functional_extensionality_dep.
+
 Lemma t_update_shadow : forall (A : Type) (m : total_map A) x v1 v2,
   (x !-> v2 ; x !-> v1 ; m) = (x !-> v2 ; m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ unfold t_update.
+ apply functional_extensionality_dep.
+ intros.
+ destruct (x =? x0)%string. 
+ - reflexivity.
+ - reflexivity. 
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard (t_update_same)
@@ -244,8 +273,18 @@ Proof.
 Theorem t_update_same : forall (A : Type) (m : total_map A) x,
   (x !-> m x ; m) = m.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ unfold t_update.
+ apply functional_extensionality_dep.
+ intros.
+ destruct (x =? x0)%string eqn:E.
+ - rewrite String.eqb_eq in E.
+   rewrite E. reflexivity.
+ - reflexivity.  
+Qed.
 (** [] *)
+
+Search (_ = true).
 
 (** **** Exercise: 3 stars, standard, especially useful (t_update_permute)
 
@@ -260,7 +299,30 @@ Theorem t_update_permute : forall (A : Type) (m : total_map A)
   =
   (x2 !-> v2 ; x1 !-> v1 ; m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+
+ unfold t_update.
+ apply functional_extensionality_dep.
+ intros.
+ unfold not in H.
+
+ destruct (x1 =? x)%string eqn:EE.
+ - rewrite String.eqb_eq in EE.
+   destruct (x2 =? x)%string eqn:E2.
+   + rewrite String.eqb_eq in E2.
+     rewrite E2 in H.
+     rewrite EE in H.
+     exfalso.
+     apply H.
+     reflexivity.
+   + reflexivity.
+ - rewrite String.eqb_neq in EE.
+   unfold not in EE.   
+   destruct (x2 =? x)%string eqn:E1.
+   + rewrite String.eqb_eq in E1.
+     reflexivity.
+   + reflexivity.
+Qed.
 (** [] *)
 
 (* ################################################################# *)
@@ -354,6 +416,8 @@ Definition includedin {A : Type} (m m' : partial_map A) :=
   forall x v, m x = Some v -> m' x = Some v.
 
 (** We can then show that map update preserves map inclusion -- that is: *)
+
+Check eqb_spec.
 
 Lemma includedin_update : forall (A : Type) (m m' : partial_map A)
                                  (x : string) (vx : A),

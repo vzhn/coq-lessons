@@ -207,13 +207,21 @@ Proof. reflexivity. Qed.
    [X] (inclusive -- i.e., [1 + 2 + ... + X]) in the variable [Y].  Make
    sure your solution satisfies the test that follows. *)
 
-Definition pup_to_n : com
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+Definition pup_to_n : com :=
+<{ Y:= 0;
+   while X <> 0 do
+     Y := Y + X;
+     X := X - 1
+   end
+}>.
 
 Example pup_to_n_1 :
   test_ceval (X !-> 5) pup_to_n
   = Some (0, 15, 0).
-(* FILL IN HERE *) Admitted.
+Proof.
+ unfold pup_to_n. reflexivity. 
+Qed.
+  
 (* 
 Proof. reflexivity. Qed.
 *)
@@ -392,5 +400,30 @@ Proof.
   apply ceval_step_more with (i2 := i1 + i2) in E2.
   rewrite E1 in E2. inversion E2. reflexivity.
   lia. lia.  Qed.
+
+Example factorial_dec : com :=
+ <{
+  Y := X;
+  while X <> 1 do
+   X := X - 1;
+   Y := Y * X 
+  end
+ }>.
+
+Example ftest4: test_ceval (X !-> 4) factorial_dec =  Some (1, 24, 0).
+Proof. 
+ reflexivity.
+Qed.
+
+Example ftest2: test_ceval (X !-> 2) factorial_dec =  Some (1, 2, 0).
+Proof. 
+ reflexivity.
+Qed.
+
+Example ftest1: test_ceval (X !-> 1) factorial_dec =  Some (1, 1, 0).
+Proof. 
+ reflexivity.
+Qed.
+
 
 (* 2023-12-29 17:12 *)

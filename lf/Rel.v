@@ -105,13 +105,24 @@ Proof.
 (** Copy the definition of [total_relation] from your [IndProp]
     here so that this file can be graded on its own.  *)
 Inductive total_relation : nat -> nat -> Prop :=
-  (* FILL IN HERE *)
-.
+  | total_n_m (n : nat) (m : nat): total_relation n m.
+
+Print total_relation.
 
 Theorem total_relation_not_partial_function :
   ~ (partial_function total_relation).
 Proof.
-  (* FILL IN HERE *) Admitted.
+ unfold not.
+ unfold partial_function.
+ intros.
+
+ assert (2 = 3) as Nonsense. {
+  apply H with (x := 2).
+  apply total_n_m.
+  apply total_n_m.
+ }
+ discriminate Nonsense.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (empty_relation_partial_function)
@@ -128,7 +139,10 @@ Inductive empty_relation : nat -> nat -> Prop :=
 Theorem empty_relation_partial_function :
   partial_function empty_relation.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ unfold partial_function.
+ intros.
+ inversion H.
+Qed.
 (** [] *)
 
 (* ----------------------------------------------------------------- *)
@@ -177,6 +191,8 @@ Proof.
     We can also prove [lt_trans] more laboriously by induction,
     without using [le_trans].  Do this. *)
 
+Print le.
+
 Theorem lt_trans' :
   transitive lt.
 Proof.
@@ -184,7 +200,11 @@ Proof.
   unfold lt. unfold transitive.
   intros n m o Hnm Hmo.
   induction Hmo as [| m' Hm'o].
-    (* FILL IN HERE *) Admitted.
+  apply le_S in Hnm.
+  apply Hnm.
+  apply le_S in IHHm'o.
+  apply IHHm'o.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (lt_trans'')
@@ -197,7 +217,16 @@ Proof.
   unfold lt. unfold transitive.
   intros n m o Hnm Hmo.
   induction o as [| o'].
-  (* FILL IN HERE *) Admitted.
+  - inversion Hmo.
+  - inversion Hmo.
+    rewrite H0 in *.
+    apply le_S in Hnm.
+    apply Hnm.
+    apply IHo' in H0 .
+    apply le_S in H0.
+    apply H0.
+ Show Proof.
+Qed.
 (** [] *)
 
 (** The transitivity of [le], in turn, can be used to prove some facts
@@ -215,7 +244,12 @@ Qed.
 Theorem le_S_n : forall n m,
   (S n <= S m) -> (n <= m).
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ inversion H.
+ - apply le_n.
+ - apply le_Sn_le in H1.
+   apply H1.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (le_Sn_n_inf)
@@ -223,7 +257,7 @@ Proof.
     Provide an informal proof of the following theorem:
 
     Theorem: For every [n], [~ (S n <= n)]
-
+-
     A formal proof of this is an optional exercise below, but try
     writing an informal proof without doing the formal proof first.
 
@@ -232,11 +266,21 @@ Proof.
 
     [] *)
 
+Search (S _ = _).
+
 (** **** Exercise: 1 star, standard, optional (le_Sn_n) *)
 Theorem le_Sn_n : forall n,
   ~ (S n <= n).
 Proof.
-  (* FILL IN HERE *) Admitted.
+ unfold not.
+ induction n.
+ - intros contra.
+   inversion contra.
+ - intros.
+   apply le_S_n in H.
+   apply IHn in H.
+   apply H.
+Qed.
 (** [] *)
 
 (** Reflexivity and transitivity are the main concepts we'll need for
@@ -255,7 +299,16 @@ Definition symmetric {X: Type} (R: relation X) :=
 Theorem le_not_symmetric :
   ~ (symmetric le).
 Proof.
-  (* FILL IN HERE *) Admitted.
+ unfold not.
+ intros.
+ unfold symmetric in H.
+ specialize H with (a := O) (b := (S O)).
+ assert (H1 : 1 <= 0).
+ apply H.
+ apply le_S. apply le_n.
+ apply le_Sn_n in H1.
+ apply H1.
+Qed.
 (** [] *)
 
 (** A relation [R] is _antisymmetric_ if [R a b] and [R b a] together
@@ -269,7 +322,24 @@ Definition antisymmetric {X: Type} (R: relation X) :=
 Theorem le_antisymmetric :
   antisymmetric le.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ unfold antisymmetric.
+ intros a b HA HB.
+ generalize dependent b.
+ induction a.
+ - destruct b.
+   + reflexivity.
+   + intros. inversion HB.
+ - intros.  
+   destruct b.
+   inversion HA.
+   specialize IHa with (b := b).
+   apply le_S_n in HA.
+   apply le_S_n in HB.
+   apply IHa in HA.
+   rewrite HA.
+   reflexivity.
+   apply HB.
+Qed.
 (** [] *)
 
 (** **** Exercise: 2 stars, standard, optional (le_step) *)
@@ -278,7 +348,16 @@ Theorem le_step : forall n m p,
   m <= S p ->
   n <= p.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ destruct m.
+ inversion H.
+ unfold lt in H.
+ apply le_S_n.
+
+ apply le_trans with (S m).
+ apply H.
+ apply H0.
+Qed.
 (** [] *)
 
 (* ----------------------------------------------------------------- *)
@@ -387,6 +466,18 @@ Proof.
   intros X R x y H.
   apply rt1n_trans with y. apply H. apply rt1n_refl.   Qed.
 
+(*
+ Inductive clos_refl_trans_1n {A : Type}
+                             (R : relation A) (x : A)
+                             : A -> Prop :=
+  | rt1n_refl : clos_refl_trans_1n R x x
+  | rt1n_trans (y z : A)
+      (Hxy : R x y) (Hrest : clos_refl_trans_1n R y z) :
+      clos_refl_trans_1n R x z.
+*)
+
+Print clos_refl_trans.
+
 (** **** Exercise: 2 stars, standard, optional (rsc_trans) *)
 Lemma rsc_trans :
   forall (X:Type) (R: relation X) (x y z : X),
@@ -394,19 +485,53 @@ Lemma rsc_trans :
       clos_refl_trans_1n R y z ->
       clos_refl_trans_1n R x z.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros X R x y z.
+ intros Hxy.
+ intros Hyz.
+ induction Hxy.
+ - apply Hyz.
+ - apply rt1n_trans with (y := y) .
+   apply Hxy.
+   apply IHHxy.
+   apply Hyz.
+Qed.
 (** [] *)
 
 (** Then we use these facts to prove that the two definitions of
     reflexive, transitive closure do indeed define the same
     relation. *)
 
+(*
+ Inductive clos_refl_trans (A : Type) (R : relation A) : relation A :=
+    rt_step : forall x y : A, R x y -> clos_refl_trans R x y
+  | rt_refl : forall x : A, clos_refl_trans R x x
+  | rt_trans : forall x y z : A, clos_refl_trans R x y -> clos_refl_trans R y z -> clos_refl_trans R x z.
+*)
+
 (** **** Exercise: 3 stars, standard, optional (rtc_rsc_coincide) *)
 Theorem rtc_rsc_coincide :
   forall (X:Type) (R: relation X) (x y : X),
     clos_refl_trans R x y <-> clos_refl_trans_1n R x y.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ split.
+ - intros HA.
+  induction HA.
+  + apply rt1n_trans with (y:=y).
+    apply H.
+    apply rt1n_refl.
+  + apply rt1n_refl.
+  + apply rsc_trans with (y:=y).
+    apply IHHA1.
+    apply IHHA2.
+ - intros HA.
+   induction HA.
+   apply rt_refl.
+   apply rt_step in Hxy.
+   apply rt_trans with (y:=y).
+   apply Hxy.
+   apply IHHA.
+Qed.
 (** [] *)
 
 (* 2023-12-29 17:12 *)

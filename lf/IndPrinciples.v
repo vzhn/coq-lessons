@@ -68,10 +68,17 @@ Proof.
 
     Complete this proof without using the [induction] tactic. *)
 
+Search (_ + 1).
+
 Theorem plus_one_r' : forall n:nat,
   n + 1 = S n.
 Proof.
-  (* FILL IN HERE *) Admitted.
+ intros.
+ apply nat_ind with (n := n).
+ - rewrite add_1_r. reflexivity.
+ - intros n1 H.
+   rewrite plus_Sn_m. rewrite <- H. reflexivity.
+Qed.
 (** [] *)
 
 (** Coq generates induction principles for every datatype
@@ -180,6 +187,8 @@ Inductive booltree : Type :=
   | bt_leaf (b : bool)
   | bt_branch (b : bool) (t1 t2 : booltree).
 
+Check booltree_ind.
+
 (* What is the induction principle for [booltree]? Of course you could
    ask Coq, but try not to do that. Instead, write it down yourself on
    paper. Then look at the definition of [booltree_ind_type], below.
@@ -190,13 +199,13 @@ Inductive booltree : Type :=
 Definition booltree_property_type : Type := booltree -> Prop.
 
 Definition base_case (P : booltree_property_type) : Prop
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+ := P bt_empty.
 
 Definition leaf_case (P : booltree_property_type) : Prop
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+ := forall b: bool, P (bt_leaf b).
 
 Definition branch_case (P : booltree_property_type) : Prop
-  (* REPLACE THIS LINE WITH ":= _your_definition_ ." *). Admitted.
+ := forall (b: bool) (t1: booltree), P t1 -> forall (t2: booltree), P t2 -> P (bt_branch b t1 t2).
 
 Definition booltree_ind_type :=
   forall (P : booltree_property_type),
@@ -212,7 +221,9 @@ Definition booltree_ind_type :=
     same type as what you just defined. *)
 
 Theorem booltree_ind_type_correct : booltree_ind_type.
-Proof. (* FILL IN HERE *) Admitted.
+Proof.
+ exact booltree_ind.
+Qed.
 
 (** [] *)
 
@@ -229,8 +240,8 @@ Proof. (* FILL IN HERE *) Admitted.
     principle Coq generates is that given above: *)
 
 Inductive Toy : Type :=
-  (* FILL IN HERE *)
-.
+| toy1 (b: bool)
+| toy2 (n: nat) (t: Toy).
 
 (** Show that your definition is correct by proving the following theorem.
     You should be able to instantiate [f] and [g] with your two constructors,
@@ -243,7 +254,11 @@ Theorem Toy_correct : exists f g,
     (forall b : bool, P (f b)) ->
     (forall (n : nat) (t : Toy), P t -> P (g n t)) ->
     forall t : Toy, P t.
-Proof. (* FILL IN HERE *) Admitted.
+Proof. 
+ exists (fun b => toy1 b).
+ exists (fun (n: nat) (t: Toy) => toy2 n t).
+ exact Toy_ind.
+Qed.
 
 (** [] *)
 
@@ -328,17 +343,19 @@ Inductive foo' (X:Type) : Type :=
   | C1 (l : list X) (f : foo' X)
   | C2.
 
+Check foo'_ind.
+
 (** What induction principle will Coq generate for [foo']?  (Fill
    in the blanks, then check your answer with Coq.)
 
      foo'_ind :
         forall (X : Type) (P : foo' X -> Prop),
               (forall (l : list X) (f : foo' X),
-                    _______________________ ->
-                    _______________________   ) ->
-             ___________________________________________ ->
-             forall f : foo' X, ________________________
+                    P f -> P (C1 X l f) -> P C2 X ->
+             forall f : foo' X, P f
 *)
+
+
 
 (** [] *)
 
@@ -919,6 +936,8 @@ Check t_tree_ind.
 
 (** That will get us in trouble if we want to prove something by
     induction, such as that [reflect] is an involution. *)
+
+Print reflect.
 
 Fixpoint reflect {X : Type} (t : t_tree X) : t_tree X :=
   match t with
